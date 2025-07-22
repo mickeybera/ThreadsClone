@@ -54,35 +54,77 @@ const CreatePost = () => {
 		}
 	};
 
-	const handleCreatePost = async () => {
-		setLoading(true);
-		try {
-			const res = await fetch("/api/posts/create", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ postedBy: user._id, text: postText, img: imgUrl }),
-			});
+	// const handleCreatePost = async () => {
+	// 	setLoading(true);
+	// 	try {
+	// 		const res = await fetch("/api/posts/create", {
+	// 			method: "POST",
+	// 			headers: {
+	// 				"Content-Type": "application/json",
+	// 			},
+	// 			body: JSON.stringify({ postedBy: user._id, text: postText, img: imgUrl }),
+	// 		});
 
-			const data = await res.json();
-			if (data.error) {
-				showToast("Error", data.error, "error");
-				return;
-			}
-			showToast("Success", "Post created successfully", "success");
-			if (username === user.username) {
-				setPosts([data, ...posts]);
-			}
-			onClose();
-			setPostText("");
-			setImgUrl("");
-		} catch (error) {
-			showToast("Error", error, "error");
-		} finally {
-			setLoading(false);
-		}
-	};
+	// 		const data = await res.json();
+	// 		if (data.error) {
+	// 			showToast("Error", data.error, "error");
+	// 			return;
+	// 		}
+	// 		showToast("Success", "Post created successfully", "success");
+	// 		if (username === user.username) {
+	// 			setPosts([data, ...posts]);
+	// 		}
+	// 		onClose();
+	// 		setPostText("");
+	// 		setImgUrl("");
+	// 	} catch (error) {
+	// 		showToast("Error", error, "error");
+	// 	} finally {
+	// 		setLoading(false);
+	// 	}
+	// };
+
+	//handlecreate post
+	const handleCreatePost = async () => {
+  if (!postText && !imageRef.current.files[0]) {
+    showToast("Error", "Post cannot be empty", "error");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const formData = new FormData();
+    formData.append("postedBy", user._id);
+    formData.append("text", postText);
+    if (imageRef.current.files[0]) {
+      formData.append("image", imageRef.current.files[0]);
+    }
+
+    const res = await fetch("/api/posts/create", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      showToast("Error", data.error, "error");
+      return;
+    }
+
+    showToast("Success", "Post created successfully", "success");
+    if (username === user.username) {
+      setPosts([data, ...posts]);
+    }
+    onClose();
+    setPostText("");
+    setImgUrl("");
+    imageRef.current.value = ""; // Reset file input
+  } catch (error) {
+    showToast("Error", error.message, "error");
+  } finally {
+    setLoading(false);
+  }
+};
 
 	return (
 		<>
